@@ -29,18 +29,66 @@ namespace MazeRunner3
         //we need to get multiplayer to work
         static void Multiplayer()
         {
+            InGame = true;
+            Thread AI_Manager_Thread = new Thread(AI_Manager); 
+            AI_Manager_Thread.Start();
 
-           
+            Thread GameRender = new Thread(() => DisplayMazeThread(120));
+            GameRender.Start();
+
+            Thread Player1 = new Thread(MultiPlayerManager);
+            Player1.Start();
+
+            do
+            {
+                if (ScorePoint(0))
+                {
+                    player0Score++;                
+                }
+                if (ScorePoint(1))
+                {
+                    player1Score++;                
+                }
+            } while (player0Score != 50 && player1Score != 50);
+
+            InGame = false;
+            AI_Manager_Thread.Join();
+            GameRender.Join();
+            Player1.Join();
+
+
 
         }
 
         //create a thread to display the maze
         static void DisplayMazeThread(int fps = 60)
         {
-           
+            int delay = 1000 / fps;
+
+            do
+            {
+                DisplayMaze();
+                Thread.Sleep(delay);
+            } while (InGame);
+            Thread.Sleep(150);
+         
+            
         }
         static bool ScorePoint(int playerID)
         {
+            int playerX = charPositions[playerID,0];
+            int playerY = charPositions[playerID,1];
+            //collision check
+            for (int i = 2; i < charPositions.GetLength(0); i++)
+            {
+                if (charPositions[i, 0] == playerX && charPositions[i, 1] == playerY)
+                {
+                    charPositions[i, 0] = 9;
+                    charPositions[i, 1] = 9;
+                    return true;
+                }           
+            }
+
             return false;
         }
 
